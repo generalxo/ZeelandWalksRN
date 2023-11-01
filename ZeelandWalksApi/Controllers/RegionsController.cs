@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ZeelandWalksApi.Models.DTO;
-//using ZeelandWalksApi.CustomActionFilters;
 using ZeelandWalksApi.Data;
 using ZeelandWalksApi.Models.Domain;
 using ZeelandWalksApi.Repositories;
@@ -13,6 +12,7 @@ namespace ZeelandWalksApi.Controllers
     // https://localhost:1234/api/regions
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class RegionsController : ControllerBase
     {
         private readonly NZWalksDbContext dbContext;
