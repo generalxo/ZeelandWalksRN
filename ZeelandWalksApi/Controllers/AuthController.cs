@@ -4,75 +4,76 @@ using Microsoft.AspNetCore.Mvc;
 using ZeelandWalksApi.Models.DTO;
 using ZeelandWalksApi.Repositories;
 
+
 namespace ZeelandWalksApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly ITokenRepository _tokenRepository;
-
+        private readonly UserManager<IdentityUser> userManager;
+        private readonly ITokenRepository tokenRepository;
         public AuthController(UserManager<IdentityUser> userManager, ITokenRepository tokenRepository)
         {
-            _userManager = userManager;
-            _tokenRepository = tokenRepository;
+            this.userManager = userManager;
+            this.tokenRepository = tokenRepository;
         }
-        //post: api/auth/register
+        //Post: /api/Auth/Register
         [HttpPost]
-        [Route("register")]
+        [Route("Register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto registerRequestDto)
         {
             var identityUser = new IdentityUser
             {
                 UserName = registerRequestDto.Username,
                 Email = registerRequestDto.Username
-            };
-            var IdentityResult = await _userManager.CreateAsync(identityUser, registerRequestDto.Password);
 
-            if(IdentityResult.Succeeded)
+            };
+            var identityResult = await userManager.CreateAsync(identityUser, registerRequestDto.Password);
+
+            if (identityResult.Succeeded)
             {
-                //ad role to this user
-                if(registerRequestDto.Roles != null && registerRequestDto.Roles.Any())
+                // add role to this user
+                if (registerRequestDto.Roles != null && registerRequestDto.Roles.Any())
                 {
-                    IdentityResult = await _userManager.AddToRolesAsync(identityUser, registerRequestDto.Roles);
-                    if (IdentityResult.Succeeded)
+                    identityResult = await userManager.AddToRolesAsync(identityUser, registerRequestDto.Roles);
+                    if (identityResult.Succeeded)
                     {
-                        return Ok("The user was registered");
+                        return Ok("The user was registered! You can now login");
                     }
                 }
             }
-            return BadRequest("Server error has ocurred");
+            return BadRequest("Sorry, it did not work this time");
         }
-
-        //post: api/auth/login
+        //Post: /api/Auth/Login
         [HttpPost]
-        [Route("login")]
+        [Route("Login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequestDto)
         {
-            var user = await _userManager.FindByEmailAsync(loginRequestDto.Username);
+            var user = await userManager.FindByEmailAsync(loginRequestDto.Username);
 
             if (user != null)
             {
-                var checkPasswordRequest = await _userManager.CheckPasswordAsync(user, loginRequestDto.Password);
-                if (checkPasswordRequest)
+                var checkPasswordResult = await userManager.CheckPasswordAsync(user, loginRequestDto.Password);
+                if (checkPasswordResult)
                 {
-                    //get a role for the user
-                    var roles = await _userManager.GetRolesAsync(user);
+                    // get a role for the user
+                    var roles = await userManager.GetRolesAsync(user);
                     if (roles != null)
                     {
-                        //Create token
-                        var jwtToken = _tokenRepository.CreateJwtToken(user, roles.ToList());
+                        var jwttoken = tokenRepository.CreateJWTToken(user, roles.ToList());
                         var response = new LoginResponseDto
                         {
-                            JwtToken = jwtToken
+                            AccessToken = jwttoken
                         };
-
                         return Ok(response);
                     }
+
+
+
                 }
             }
-            return BadRequest("Username or password is incorrect");
+            return BadRequest("username or password was incorrect");
         }
     }
 }

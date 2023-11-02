@@ -4,6 +4,6 @@ namespace ZeelandWalksApi.Repositories
 {
     public interface ITokenRepository
     {
-        string CreateJwtToken(IdentityUser user, List<string> roles);
+        string CreateJWTToken(IdentityUser user, List<string> roles);
     }
 }
